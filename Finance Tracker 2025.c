@@ -215,8 +215,6 @@ void tampilkanTotalMingguan() {
     }
 }
 
-// ... fungsi lainnya tidak berubah ...
-
 void hapusTransaksi() {
     int index;
     tampilkanSemuaTransaksi();
