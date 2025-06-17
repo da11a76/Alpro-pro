@@ -357,7 +357,7 @@ void menuUtama() {
             default:
                 printf("Pilihan tidak valid.\n");
         }
-    } while(pilihan != 8);
+    } while(pilihan != 9);
 }
 
 int main() {
