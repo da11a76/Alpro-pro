@@ -65,6 +65,11 @@ void ringkasan(int sem);
 void listTransaksi(int sem, int bulan);
 void hapusTransaksi(int sem, int bulan);
 void bacaStr(char *buf, int max);
+char getKonfirmasi(const char* pesan);
+int inputTanggalValid(Tanggal *t, int sem);
+int prosesPembayaran(Anggota *a, int *bulan, int jumlah, int sem);
+int prosesPembayaranTunggakan(Anggota *a, int *bulanTunggakan, int jumlahTunggakan, int sem);
+int prosesPembayaranCicilan(Anggota *a, int jumlahBulan, int sem);
 
 int main() {
     loadAnggota();
@@ -487,12 +492,11 @@ void inputKas(int sem) {
         char nama[MAX_NAMA];
         Anggota *a = NULL;
 
-        // Loop untuk input nama anggota
+        // Loop untuk input nama anggota dengan validasi
         while (a == NULL) {
             printf("Nama anggota (0=kembali ke menu): ");
             bacaStr(nama, MAX_NAMA);
 
-            // Cek jika user ingin keluar
             if (strcmp(nama, "0") == 0) {
                 printf("Kembali ke menu utama.\n");
                 return;
@@ -505,7 +509,7 @@ void inputKas(int sem) {
             }
         }
 
-        // Tampilkan status pembayaran saat ini
+        // Tampilkan status pembayaran saat ini untuk memberikan informasi kepada user
         printf("\n Anggota ditemukan: %s\n", a->nama);
         printf("Status pembayaran saat ini: ");
         for(int i = 0; i < 6; i++) {
@@ -513,18 +517,39 @@ void inputKas(int sem) {
         }
         printf(" (1=sudah bayar, 0=belum bayar)\n");
 
-        // Loop untuk pilihan metode pembayaran
+        // Hitung tunggakan untuk memberikan informasi tambahan
+        int jumlahTunggakan = 0;
+        int bulanTunggakan[6];
+        for(int i = 0; i < 6; i++) {
+            if(a->bayar[i] == 0) {
+                bulanTunggakan[jumlahTunggakan] = i + 1;
+                jumlahTunggakan++;
+            }
+        }
+
+        if(jumlahTunggakan > 0) {
+            printf("Tunggakan: %d bulan (", jumlahTunggakan);
+            for(int i = 0; i < jumlahTunggakan; i++) {
+                printf("%s%d", (i > 0 ? ", " : ""), bulanTunggakan[i]);
+            }
+            printf(")\n");
+        } else {
+            printf("Status: Semua bulan sudah lunas\n");
+        }
+
+        // Loop untuk pilihan metode pembayaran - diperluas menjadi 3 skenario
         int pilihan = 0;
-        while (pilihan != 1 && pilihan != 2) {
+        while (pilihan < 1 || pilihan > 3) {
             printf("\nPilih metode pembayaran:\n");
-            printf("1. Bayar bulan tertentu\n");
-            printf("2. Bayar cicilan berturut-turut dari bulan 1\n");
+            printf("1. Bayar 1 bulan tertentu\n");
+            printf("2. Bayar semua tunggakan sekaligus\n");
+            printf("3. Bayar beberapa bulan berturut-turut dari bulan 1\n");
             printf("0. Kembali ke menu utama\n");
-            printf("Pilihan (0/1/2): ");
+            printf("Pilihan (0/1/2/3): ");
 
             if (scanf("%d", &pilihan) != 1) {
-                printf(" Input tidak valid! Harap masukkan angka 0, 1, atau 2.\n");
-                while (getchar() != '\n'); // bersihkan buffer
+                printf(" Input tidak valid! Harap masukkan angka 0, 1, 2, atau 3.\n");
+                while (getchar() != '\n'); // bersihkan buffer input
                 continue;
             }
 
@@ -533,19 +558,25 @@ void inputKas(int sem) {
                 return;
             }
 
-            if (pilihan != 1 && pilihan != 2) {
-                printf(" Pilihan tidak valid! Harap pilih 0, 1, atau 2.\n");
+            if (pilihan < 1 || pilihan > 3) {
+                printf(" Pilihan tidak valid! Harap pilih 0, 1, 2, atau 3.\n");
             }
         }
 
+        // SKENARIO 1: Pembayaran untuk 1 bulan tertentu
         if (pilihan == 1) {
-            // Bayar bulan tertentu
+            // Validasi: harus ada bulan yang belum dibayar
+            if(jumlahTunggakan == 0) {
+                printf(" Tidak ada tunggakan. Semua bulan sudah dibayar.\n");
+                continue; // kembali ke awal loop
+            }
+
             int bulan = -1;
             while (bulan < 0 || bulan > 6) {
                 printf("Masukkan bulan yang akan dibayar (1-6, 0=batal): ");
                 if (scanf("%d", &bulan) != 1) {
                     printf(" Input tidak valid! Harap masukkan angka antara 0-6.\n");
-                    while (getchar() != '\n'); // bersihkan buffer
+                    while (getchar() != '\n');
                     continue;
                 }
 
@@ -554,100 +585,74 @@ void inputKas(int sem) {
                     break;
                 }
 
+                // Validasi range bulan
                 if (bulan < 1 || bulan > 6) {
-                    printf("Bulan tidak valid! Harap masukkan angka antara 1-6.\n");
+                    printf(" Bulan tidak valid! Harap masukkan angka antara 1-6.\n");
+                    continue;
+                }
+
+                // Validasi: bulan belum dibayar
+                if (a->bayar[bulan-1] == 1) {
+                    printf(" Bulan %d sudah dibayar sebelumnya.\n", bulan);
+                    printf(" Silakan pilih bulan lain yang belum dibayar.\n");
+                    bulan = -1; // reset untuk loop ulang
+                    continue;
                 }
             }
 
-            if (bulan == 0) continue; // kembali ke awal loop while lanjut
+            if (bulan == 0) continue; // user batal
 
-            if (a->bayar[bulan-1] == 1) {
-                printf(" Bulan %d sudah dibayar sebelumnya.\n", bulan);
-                printf("Apakah Anda ingin melanjutkan input kas? (y/n): ");
-                char lanjut_input;
-                scanf(" %c", &lanjut_input);
-                if (lanjut_input != 'y' && lanjut_input != 'Y') {
-                    continue; // kembali ke awal loop while lanjut
-                }
+            // Proses pembayaran 1 bulan
+            if(prosesPembayaran(a, &bulan, 1, sem)) {
+                printf(" Kas bulan %d berhasil dicatat untuk %s.\n", bulan, a->nama);
+            }
+        }
+        // SKENARIO 2: Pembayaran semua tunggakan sekaligus
+        else if (pilihan == 2) {
+            // Validasi: harus ada tunggakan
+            if(jumlahTunggakan == 0) {
+                printf(" Tidak ada tunggakan. Semua bulan sudah dibayar.\n");
+                continue;
             }
 
-            // Konfirmasi pembayaran
-            printf("\n=== KONFIRMASI PEMBAYARAN ===\n");
+            // Konfirmasi pembayaran semua tunggakan
+            printf("\n=== KONFIRMASI PEMBAYARAN TUNGGAKAN ===\n");
             printf("Anggota: %s\n", a->nama);
-            printf("Bulan: %d\n", bulan);
-            printf("Jumlah: Rp %d,00\n", KAS_PER_BULAN);
-
-            char konfirmasi = 'n';
-            while (konfirmasi != 'y' && konfirmasi != 'Y' && konfirmasi != 'n' && konfirmasi != 'N') {
-                printf("Lanjutkan pembayaran? (y/n): ");
-                scanf(" %c", &konfirmasi);
-                if (konfirmasi != 'y' && konfirmasi != 'Y' && konfirmasi != 'n' && konfirmasi != 'N') {
-                    printf(" Input tidak valid! Harap masukkan 'y' untuk ya atau 'n' untuk tidak.\n");
-                }
+            printf("Bulan yang akan dibayar: ");
+            for(int i = 0; i < jumlahTunggakan; i++) {
+                printf("%s%d", (i > 0 ? ", " : ""), bulanTunggakan[i]);
             }
+            printf("\nTotal: Rp %d,00 (%d bulan x Rp %d,00)\n",
+                   KAS_PER_BULAN * jumlahTunggakan, jumlahTunggakan, KAS_PER_BULAN);
 
+            char konfirmasi = getKonfirmasi("Lanjutkan pembayaran semua tunggakan? (y/n): ");
             if (konfirmasi == 'n' || konfirmasi == 'N') {
                 printf("Pembayaran dibatalkan.\n");
-                continue; // kembali ke awal loop while lanjut
+                continue;
             }
 
-            // Input tanggal transaksi dengan validasi
-            Tanggal t;
-            int tanggal_valid = 0;
-            while (!tanggal_valid) {
-                printf("Tanggal transaksi (dd mm yyyy): ");
-                if (scanf("%d %d %d", &t.d, &t.m, &t.y) != 3) {
-                    printf(" Format tanggal tidak valid! Harap gunakan format: dd mm yyyy\n");
-                    printf(" Contoh: 15 10 2024\n");
-                    while (getchar() != '\n'); // bersihkan buffer
-                    continue;
-                }
-
-                if (!validTgl(t)) {
-                    printf(" Tanggal tidak valid! Periksa kembali tanggal yang dimasukkan.\n");
-                    continue;
-                }
-
-                if (!inSemester(t, sem)) {
-                    printf(" Tanggal tidak berada dalam semester %d!\n", sem);
-                    printf(" Pastikan tanggal berada dalam rentang semester yang aktif.\n");
-                    continue;
-                }
-
-                if (cmpTanggal(t, bh.berjalan) > 0) {
-                    printf(" Tanggal transaksi tidak boleh melebihi tanggal berjalan (%02d-%02d-%04d)!\n",
-                           bh.berjalan.d, bh.berjalan.m, bh.berjalan.y);
-                    continue;
-                }
-
-                tanggal_valid = 1;
+            // Proses pembayaran semua tunggakan
+            if(prosesPembayaranTunggakan(a, bulanTunggakan, jumlahTunggakan, sem)) {
+                printf(" Semua tunggakan (%d bulan) berhasil dicatat untuk %s.\n",
+                       jumlahTunggakan, a->nama);
             }
-            getchar(); // bersihkan newline
-
-            // Catat transaksi
-            Transaksi *p = &tx[ntx++];
-            p->id = ntx;
-            strcpy(p->nama, a->nama);
-            strcpy(p->tipe, "kas");
-            p->jumlah = KAS_PER_BULAN;
-            sprintf(p->kategori, "Kas Bulan %d", bulan);
-            p->tgl = t;
-            p->bulan = bulan;
-            p->semester = sem;
-
-            // Update status pembayaran
-            a->bayar[bulan-1] = 1;
-
-            printf(" Kas bulan %d berhasil dicatat untuk %s.\n", bulan, a->nama);
-
-        } else if (pilihan == 2) {
-            // Bayar cicilan berturut-turut
+        }
+        // SKENARIO 3: Pembayaran beberapa bulan berturut-turut dari bulan 1
+        else if (pilihan == 3) {
             int jumlahBulan = -1;
-            while (jumlahBulan < 0 || jumlahBulan > 6) {
-                printf("Jumlah bulan yang akan dibayar (1-6, 0=batal): ");
+
+            // Validasi: minimal bulan 1 harus belum dibayar untuk cicilan berturut-turut
+            if(a->bayar[0] == 1) {
+                printf(" Tidak bisa melakukan cicilan berturut-turut karena bulan 1 sudah dibayar.\n");
+                printf(" Gunakan opsi 1 atau 2 untuk pembayaran bulan yang belum dibayar.\n");
+                continue;
+            }
+
+            while (jumlahBulan < 1 || jumlahBulan > 6) {
+                printf("Jumlah bulan berturut-turut yang akan dibayar (1-6, 0=batal): ");
                 if (scanf("%d", &jumlahBulan) != 1) {
                     printf(" Input tidak valid! Harap masukkan angka antara 0-6.\n");
-                    while (getchar() != '\n'); // bersihkan buffer
+                    while (getchar() != '\n');
                     continue;
                 }
 
@@ -656,123 +661,202 @@ void inputKas(int sem) {
                     break;
                 }
 
+                // Validasi range
                 if (jumlahBulan < 1 || jumlahBulan > 6) {
                     printf(" Jumlah bulan tidak valid! Harap masukkan angka antara 1-6.\n");
-                }
-            }
-
-            if (jumlahBulan == 0) continue; // kembali ke awal loop while lanjut
-
-            // Cek apakah ada bulan yang sudah dibayar
-            int bulanSudahBayar = 0;
-            for (int i = 0; i < jumlahBulan; i++) {
-                if (a->bayar[i] == 1) {
-                    bulanSudahBayar = 1;
-                    break;
-                }
-            }
-
-            if (bulanSudahBayar) {
-                printf(" Ada bulan yang sudah dibayar dalam rentang tersebut.\n");
-                printf(" Gunakan opsi 'Bayar bulan tertentu' untuk bulan yang belum dibayar.\n");
-                printf("Apakah Anda ingin kembali ke pilihan metode pembayaran? (y/n): ");
-                char kembali;
-                scanf(" %c", &kembali);
-                if (kembali == 'y' || kembali == 'Y') {
-                    continue; // kembali ke awal loop while lanjut
-                }
-                continue; // kembali ke awal loop while lanjut
-            }
-
-            // Konfirmasi pembayaran
-            printf("\n=== KONFIRMASI PEMBAYARAN ===\n");
-            printf("Anggota: %s\n", a->nama);
-            printf("Bulan: 1 sampai %d\n", jumlahBulan);
-            printf("Total: Rp %d,00\n", KAS_PER_BULAN * jumlahBulan);
-
-            char konfirmasi = 'x';
-            while (konfirmasi != 'y' && konfirmasi != 'Y' && konfirmasi != 'n' && konfirmasi != 'N') {
-                printf("Lanjutkan pembayaran? (y/n): ");
-                scanf(" %c", &konfirmasi);
-                if (konfirmasi != 'y' && konfirmasi != 'Y' && konfirmasi != 'n' && konfirmasi != 'N') {
-                    printf(" Input tidak valid! Harap masukkan 'y' untuk ya atau 'n' untuk tidak.\n");
-                }
-            }
-
-            if (konfirmasi == 'n' || konfirmasi == 'N') {
-                printf("Pembayaran dibatalkan.\n");
-                continue; // kembali ke awal loop while lanjut
-            }
-
-            // Input tanggal transaksi dengan validasi
-            Tanggal t;
-            int tanggal_valid = 0;
-            while (!tanggal_valid) {
-                printf("Tanggal transaksi (dd mm yyyy): ");
-                if (scanf("%d %d %d", &t.d, &t.m, &t.y) != 3) {
-                    printf(" Format tanggal tidak valid! Harap gunakan format: dd mm yyyy\n");
-                    printf(" Contoh: 15 10 2024\n");
-                    while (getchar() != '\n'); // bersihkan buffer
                     continue;
                 }
 
-                if (!validTgl(t)) {
-                    printf(" Tanggal tidak valid! Periksa kembali tanggal yang dimasukkan.\n");
-                    continue;
+                // Validasi: semua bulan dalam range harus belum dibayar
+                int adaYangSudahBayar = 0;
+                for (int i = 0; i < jumlahBulan; i++) {
+                    if (a->bayar[i] == 1) {
+                        adaYangSudahBayar = 1;
+                        printf(" Bulan %d sudah dibayar, tidak bisa cicilan berturut-turut.\n", i+1);
+                        break;
+                    }
                 }
 
-                if (!inSemester(t, sem)) {
-                    printf(" Tanggal tidak berada dalam semester %d!\n", sem);
-                    printf(" Pastikan tanggal berada dalam rentang semester yang aktif.\n");
+                if (adaYangSudahBayar) {
+                    printf(" Gunakan opsi 1 untuk bayar bulan tertentu saja.\n");
+                    jumlahBulan = -1; // reset untuk loop ulang
                     continue;
                 }
-
-                if (cmpTanggal(t, bh.berjalan) > 0) {
-                    printf(" Tanggal transaksi tidak boleh melebihi tanggal berjalan (%02d-%02d-%04d)!\n",
-                           bh.berjalan.d, bh.berjalan.m, bh.berjalan.y);
-                    continue;
-                }
-
-                tanggal_valid = 1;
-            }
-            getchar(); // bersihkan newline
-
-            // Catat transaksi untuk setiap bulan
-            for (int i = 0; i < jumlahBulan; i++) {
-                Transaksi *p = &tx[ntx++];
-                p->id = ntx;
-                strcpy(p->nama, a->nama);
-                strcpy(p->tipe, "kas");
-                p->jumlah = KAS_PER_BULAN;
-                sprintf(p->kategori, "Kas Bulan %d", i + 1);
-                p->tgl = t;
-                p->bulan = i + 1;
-                p->semester = sem;
-
-                // Update status pembayaran
-                a->bayar[i] = 1;
             }
 
-            printf(" Kas untuk %d bulan berhasil dicatat untuk %s.\n", jumlahBulan, a->nama);
+            if (jumlahBulan == 0) continue; // user batal
+
+            // Proses pembayaran cicilan berturut-turut
+            if(prosesPembayaranCicilan(a, jumlahBulan, sem)) {
+                printf(" Kas untuk %d bulan berturut-turut berhasil dicatat untuk %s.\n",
+                       jumlahBulan, a->nama);
+            }
         }
 
-        // Update label untuk semua anggota
+        // Update label untuk semua anggota setelah transaksi berhasil
         updateAllLabels(sem);
         printf(" Label anggota diperbarui.\n");
 
         // Tanya apakah ingin menambah transaksi lagi
-        printf("\nApakah Anda ingin menambah transaksi kas lagi? (y/n): ");
-        scanf(" %c", &lanjut);
-        while (lanjut != 'y' && lanjut != 'Y' && lanjut != 'n' && lanjut != 'N') {
-            printf(" Input tidak valid! Harap masukkan 'y' untuk ya atau 'n' untuk tidak.\n");
-            printf("Apakah Anda ingin menambah transaksi kas lagi? (y/n): ");
-            scanf(" %c", &lanjut);
-        }
+        lanjut = getKonfirmasi("\nApakah Anda ingin menambah transaksi kas lagi? (y/n): ");
     }
 
     printf("Selesai input kas masuk.\n");
 }
 
+// Fungsi helper untuk mendapatkan konfirmasi dari user
+char getKonfirmasi(const char* pesan) {
+    char konfirmasi = 'x';
+    while (konfirmasi != 'y' && konfirmasi != 'Y' && konfirmasi != 'n' && konfirmasi != 'N') {
+        printf("%s", pesan);
+        scanf(" %c", &konfirmasi);
+        if (konfirmasi != 'y' && konfirmasi != 'Y' && konfirmasi != 'n' && konfirmasi != 'N') {
+            printf(" Input tidak valid! Harap masukkan 'y' untuk ya atau 'n' untuk tidak.\n");
+        }
+    }
+    return konfirmasi;
+}
+
+// Fungsi helper untuk input dan validasi tanggal
+int inputTanggalValid(Tanggal *t, int sem) {
+    int tanggal_valid = 0;
+    while (!tanggal_valid) {
+        printf("Tanggal transaksi (dd mm yyyy): ");
+        if (scanf("%d %d %d", &t->d, &t->m, &t->y) != 3) {
+            printf(" Format tanggal tidak valid! Harap gunakan format: dd mm yyyy\n");
+            printf(" Contoh: 15 10 2024\n");
+            while (getchar() != '\n');
+            continue;
+        }
+
+        // Validasi format tanggal
+        if (!validTgl(*t)) {
+            printf(" Tanggal tidak valid! Periksa kembali tanggal yang dimasukkan.\n");
+            continue;
+        }
+
+        // Validasi semester
+        if (!inSemester(*t, sem)) {
+            printf(" Tanggal tidak berada dalam semester %d!\n", sem);
+            printf(" Pastikan tanggal berada dalam rentang semester yang aktif.\n");
+            continue;
+        }
+
+        // Validasi tidak boleh melebihi tanggal berjalan
+        if (cmpTanggal(*t, bh.berjalan) > 0) {
+            printf(" Tanggal transaksi tidak boleh melebihi tanggal berjalan (%02d-%02d-%04d)!\n",
+                   bh.berjalan.d, bh.berjalan.m, bh.berjalan.y);
+            continue;
+        }
+
+        tanggal_valid = 1;
+    }
+    getchar(); // bersihkan newline
+    return 1;
+}
+
+// Fungsi untuk memproses pembayaran 1 bulan
+int prosesPembayaran(Anggota *a, int *bulan, int jumlah, int sem) {
+    // Konfirmasi pembayaran
+    printf("\n=== KONFIRMASI PEMBAYARAN ===\n");
+    printf("Anggota: %s\n", a->nama);
+    printf("Bulan: %d\n", *bulan);
+    printf("Jumlah: Rp %d,00\n", KAS_PER_BULAN);
+
+    char konfirmasi = getKonfirmasi("Lanjutkan pembayaran? (y/n): ");
+    if (konfirmasi == 'n' || konfirmasi == 'N') {
+        printf("Pembayaran dibatalkan.\n");
+        return 0;
+    }
+
+    // Input tanggal transaksi
+    Tanggal t;
+    if(!inputTanggalValid(&t, sem)) {
+        return 0;
+    }
+
+    // Catat transaksi
+    Transaksi *p = &tx[ntx++];
+    p->id = ntx;
+    strcpy(p->nama, a->nama);
+    strcpy(p->tipe, "kas");
+    p->jumlah = KAS_PER_BULAN;
+    sprintf(p->kategori, "Kas Bulan %d", *bulan);
+    p->tgl = t;
+    p->bulan = *bulan;
+    p->semester = sem;
+
+    // Update status pembayaran
+    a->bayar[*bulan-1] = 1;
+
+    return 1;
+}
+
+// Fungsi untuk memproses pembayaran semua tunggakan
+int prosesPembayaranTunggakan(Anggota *a, int *bulanTunggakan, int jumlahTunggakan, int sem) {
+    // Input tanggal transaksi
+    Tanggal t;
+    if(!inputTanggalValid(&t, sem)) {
+        return 0;
+    }
+
+    // Catat transaksi untuk setiap bulan tunggakan
+    for (int i = 0; i < jumlahTunggakan; i++) {
+        Transaksi *p = &tx[ntx++];
+        p->id = ntx;
+        strcpy(p->nama, a->nama);
+        strcpy(p->tipe, "kas");
+        p->jumlah = KAS_PER_BULAN;
+        sprintf(p->kategori, "Kas Bulan %d", bulanTunggakan[i]);
+        p->tgl = t;
+        p->bulan = bulanTunggakan[i];
+        p->semester = sem;
+
+        // Update status pembayaran
+        a->bayar[bulanTunggakan[i]-1] = 1;
+    }
+
+    return 1;
+}
+
+// Fungsi untuk memproses pembayaran cicilan berturut-turut
+int prosesPembayaranCicilan(Anggota *a, int jumlahBulan, int sem) {
+    // Konfirmasi pembayaran
+    printf("\n=== KONFIRMASI PEMBAYARAN ===\n");
+    printf("Anggota: %s\n", a->nama);
+    printf("Bulan: 1 sampai %d\n", jumlahBulan);
+    printf("Total: Rp %d,00\n", KAS_PER_BULAN * jumlahBulan);
+
+    char konfirmasi = getKonfirmasi("Lanjutkan pembayaran? (y/n): ");
+    if (konfirmasi == 'n' || konfirmasi == 'N') {
+        printf("Pembayaran dibatalkan.\n");
+        return 0;
+    }
+
+    // Input tanggal transaksi
+    Tanggal t;
+    if(!inputTanggalValid(&t, sem)) {
+        return 0;
+    }
+
+    // Catat transaksi untuk setiap bulan
+    for (int i = 0; i < jumlahBulan; i++) {
+        Transaksi *p = &tx[ntx++];
+        p->id = ntx;
+        strcpy(p->nama, a->nama);
+        strcpy(p->tipe, "kas");
+        p->jumlah = KAS_PER_BULAN;
+        sprintf(p->kategori, "Kas Bulan %d", i + 1);
+        p->tgl = t;
+        p->bulan = i + 1;
+        p->semester = sem;
+
+        // Update status pembayaran
+        a->bayar[i] = 1;
+    }
+
+    return 1;
+}
 // Fungsi inputKeluar yang dimodifikasi dengan validasi input yang lebih baik
 void inputKeluar(int sem) {
     char lanjut = 'y';
