@@ -36,11 +36,17 @@ void tambahTransaksi() {
 
     while ((ulangi == 'y' || ulangi == 'Y') && input_count < MAX_INPUT_PER_SESI) {
         if (jumlah_transaksi >= MAX_TRANSAKSI) {
-            printf("Data transaksi penuh!\n");
+            printf("=================================================\n");
+            printf("   PERINGATAN: Data transaksi sudah mencapai batas\n");
+            printf("=================================================\n");
             return;
         }
 
         Transaksi t;
+        printf("\n---------------------------------------------\n");
+        printf("           INPUT TRANSAKSI BARU\n");
+        printf("---------------------------------------------\n");
+
         printf("Jenis transaksi (Debit(D)/Kredit(K)): ");
         fgets(buffer, sizeof(buffer), stdin);
         sscanf(buffer, "%s", t.jenis);
@@ -50,6 +56,11 @@ void tambahTransaksi() {
             fgets(buffer, sizeof(buffer), stdin);
             sscanf(buffer, "%s", t.jenis);
         }
+
+        if (strcmp(t.jenis, "D") == 0)
+            strcpy(t.jenis, "pemasukan");
+        else
+            strcpy(t.jenis, "pengeluaran");
 
         printf("Bulan (1-12): ");
         fgets(buffer, sizeof(buffer), stdin);
@@ -88,33 +99,37 @@ void tambahTransaksi() {
         data[jumlah_transaksi++] = t;
         input_count++;
 
-        printf("Transaksi berhasil ditambahkan.\n");
+        printf(">> Transaksi berhasil ditambahkan.\n");
 
         if (input_count < MAX_INPUT_PER_SESI) {
             printf("Ingin memasukkan transaksi lagi? (y/n): ");
             fgets(buffer, sizeof(buffer), stdin);
             sscanf(buffer, " %c", &ulangi);
         } else {
-            printf("Batas maksimum transaksi dalam satu sesi tercapai.\n");
+            printf(">> Batas maksimum transaksi dalam satu sesi tercapai.\n");
         }
     }
 }
 
 void tampilkanSemuaTransaksi() {
-    printf("\n===== Daftar Semua Transaksi =====\n");
-    for (int i = 0; i < jumlah_transaksi; i++) {
-        printf("%d. %s - %s - Tanggal %d/%d/%d - Rp %.2f\n",
-            i + 1, data[i].jenis, data[i].kategori, data[i].hari, data[i].bulan, data[i].tahun, data[i].nominal);
-    }
+    printf("\n=====================================================\n");
+    printf("               DAFTAR SEMUA TRANSAKSI               \n");
+    printf("=====================================================\n");
     if (jumlah_transaksi == 0) {
         printf("Belum ada transaksi tercatat.\n");
+        return;
+    }
+    for (int i = 0; i < jumlah_transaksi; i++) {
+        printf("%3d. %-12s | %-15s | %02d/%02d/%d | Rp %.2f\n",
+               i + 1, data[i].jenis, data[i].kategori,
+               data[i].hari, data[i].bulan, data[i].tahun, data[i].nominal);
     }
 }
 
 void tampilkanTotalBulanan() {
     int bulan;
     float total = 0;
-    printf("Masukkan bulan (1-12): ");
+    printf("\n>> Masukkan bulan (1-12): ");
     scanf("%d", &bulan);
     getchar();
 
@@ -129,7 +144,6 @@ void tampilkanTotalBulanan() {
     for (int i = 0; i < jumlah_transaksi; i++) {
         if (data[i].bulan == bulan && strcmp(data[i].jenis, "pengeluaran") == 0) {
             total += data[i].nominal;
-
             int found = 0;
             for (int j = 0; j < kategori_count; j++) {
                 if (strcmp(kategori_list[j].kategori, data[i].kategori) == 0) {
@@ -138,7 +152,6 @@ void tampilkanTotalBulanan() {
                     break;
                 }
             }
-
             if (!found) {
                 strcpy(kategori_list[kategori_count].kategori, data[i].kategori);
                 kategori_list[kategori_count].jumlah = data[i].nominal;
@@ -147,12 +160,14 @@ void tampilkanTotalBulanan() {
         }
     }
 
-    printf("Total pengeluaran pada bulan %d adalah Rp %.2f\n", bulan, total);
+    printf("\n-----------------------------------------------------\n");
+    printf("Total pengeluaran pada bulan %d: Rp %.2f\n", bulan, total);
     if (total > 0) {
-        printf("Persentase per kategori:\n");
+        printf(">> Persentase pengeluaran per kategori:\n");
         for (int i = 0; i < kategori_count; i++) {
             float persen = (kategori_list[i].jumlah / total) * 100;
-            printf("- %s: Rp %.2f (%.2f%%)\n", kategori_list[i].kategori, kategori_list[i].jumlah, persen);
+            printf("   - %-15s : Rp %.2f (%.2f%%)\n",
+                   kategori_list[i].kategori, kategori_list[i].jumlah, persen);
         }
     } else {
         printf("Tidak ada pengeluaran tercatat pada bulan ini.\n");
@@ -161,9 +176,9 @@ void tampilkanTotalBulanan() {
 
 void tampilkanTotalMingguan() {
     int minggu, bulan;
-    printf("Masukkan bulan (1-12): ");
+    printf("\n>> Masukkan bulan (1-12): ");
     scanf("%d", &bulan);
-    printf("Masukkan minggu ke- (1-5): ");
+    printf(">> Masukkan minggu ke- (1-5): ");
     scanf("%d", &minggu);
     getchar();
 
@@ -185,7 +200,6 @@ void tampilkanTotalMingguan() {
             strcmp(data[i].jenis, "pengeluaran") == 0) {
 
             total += data[i].nominal;
-
             int found = 0;
             for (int j = 0; j < kategori_count; j++) {
                 if (strcmp(kategori_list[j].kategori, data[i].kategori) == 0) {
@@ -194,7 +208,6 @@ void tampilkanTotalMingguan() {
                     break;
                 }
             }
-
             if (!found) {
                 strcpy(kategori_list[kategori_count].kategori, data[i].kategori);
                 kategori_list[kategori_count].jumlah = data[i].nominal;
@@ -203,12 +216,14 @@ void tampilkanTotalMingguan() {
         }
     }
 
-    printf("Total pengeluaran minggu ke-%d bulan %d adalah Rp %.2f\n", minggu, bulan, total);
+    printf("\n-----------------------------------------------------\n");
+    printf("Total pengeluaran minggu ke-%d bulan %d: Rp %.2f\n", minggu, bulan, total);
     if (total > 0) {
-        printf("Persentase per kategori:\n");
+        printf(">> Persentase pengeluaran per kategori:\n");
         for (int i = 0; i < kategori_count; i++) {
             float persen = (kategori_list[i].jumlah / total) * 100;
-            printf("- %s: Rp %.2f (%.2f%%)\n", kategori_list[i].kategori, kategori_list[i].jumlah, persen);
+            printf("   - %-15s : Rp %.2f (%.2f%%)\n",
+                   kategori_list[i].kategori, kategori_list[i].jumlah, persen);
         }
     } else {
         printf("Tidak ada pengeluaran pada minggu ini.\n");
@@ -218,7 +233,7 @@ void tampilkanTotalMingguan() {
 void hapusTransaksi() {
     int index;
     tampilkanSemuaTransaksi();
-    printf("Masukkan nomor transaksi yang ingin dihapus: ");
+    printf("\n>> Masukkan nomor transaksi yang ingin dihapus: ");
     scanf("%d", &index);
     getchar();
 
@@ -231,13 +246,13 @@ void hapusTransaksi() {
         data[i] = data[i + 1];
     }
     jumlah_transaksi--;
-    printf("Transaksi berhasil dihapus.\n");
+    printf(">> Transaksi berhasil dihapus.\n");
 }
 
 void tampilkanSaldoBulanan() {
     int bulan;
     float pemasukan = 0, pengeluaran = 0;
-    printf("Masukkan bulan (1-12): ");
+    printf("\n>> Masukkan bulan (1-12): ");
     scanf("%d", &bulan);
     getchar();
 
@@ -245,11 +260,11 @@ void tampilkanSaldoBulanan() {
 
     for (int i = 0; i < jumlah_transaksi; i++) {
         if (data[i].bulan == bulan) {
-            if (strcmp(data[i].jenis, "pemasukan") == 0) {
+            if (strcmp(data[i].jenis, "pemasukan") == 0)
                 pemasukan += data[i].nominal;
-            } else {
+            else
                 pengeluaran += data[i].nominal;
-            }
+
             hari_tercatat[data[i].hari] = 1;
         }
     }
@@ -261,14 +276,18 @@ void tampilkanSaldoBulanan() {
 
     float rata_rata = hari_aktif ? pengeluaran / hari_aktif : 0;
     float saldo = pemasukan - pengeluaran;
-    printf("Saldo bulan %d: Rp %.2f\n", bulan, saldo);
-    printf("Rata-rata pengeluaran harian bulan %d: Rp %.2f\n", bulan, rata_rata);
+
+    printf("\n-----------------------------------------------------\n");
+    printf("Saldo bulan %d         : Rp %.2f\n", bulan, saldo);
+    printf("Rata-rata pengeluaran : Rp %.2f per hari aktif\n", rata_rata);
 }
 
 void tampilkanRingkasanTahunan() {
-    printf("\n===== RINGKASAN BULANAN TAHUN 2025 =====\n");
-    printf("Bulan | Pemasukan | Pengeluaran | Saldo     | Rata-rata Pengeluaran Harian\n");
-    printf("----------------------------------------------------------------------\n");
+    printf("\n==============================================================\n");
+    printf("           RINGKASAN KEUANGAN BULANAN TAHUN 2025\n");
+    printf("==============================================================\n");
+    printf("Bulan |  Pemasukan  | Pengeluaran |   Saldo   | Rata-rata Harian\n");
+    printf("--------------------------------------------------------------\n");
 
     for (int bulan = 1; bulan <= 12; bulan++) {
         float pemasukan = 0, pengeluaran = 0;
@@ -293,18 +312,22 @@ void tampilkanRingkasanTahunan() {
         float rata_rata = hari_aktif ? pengeluaran / hari_aktif : 0;
         float saldo = pemasukan - pengeluaran;
 
-        printf("  %2d  | %10.2f | %11.2f | %8.2f | %29.2f\n",
-            bulan, pemasukan, pengeluaran, saldo, rata_rata);
+        printf("  %2d   | %10.2f  | %10.2f  | %8.2f | %17.2f\n",
+               bulan, pemasukan, pengeluaran, saldo, rata_rata);
     }
 }
 
 void tampilkanSaldoAkhir() {
     float pemasukan = 0, pengeluaran = 0;
     for (int i = 0; i < jumlah_transaksi; i++) {
-        if (strcmp(data[i].jenis, "pemasukan") == 0) pemasukan += data[i].nominal;
-        else pengeluaran += data[i].nominal;
+        if (strcmp(data[i].jenis, "pemasukan") == 0)
+            pemasukan += data[i].nominal;
+        else
+            pengeluaran += data[i].nominal;
     }
-    printf("Saldo akhir: Rp %.2f\n", pemasukan - pengeluaran);
+    printf("\n=================================================\n");
+    printf("   SALDO AKHIR KEUANGAN: Rp %.2f\n", pemasukan - pengeluaran);
+    printf("=================================================\n");
 }
 
 void menuUtama() {
@@ -312,7 +335,9 @@ void menuUtama() {
     char buffer[100];
 
     do {
-        printf("\n=== FINANCE TRACKER 2025 ===\n");
+        printf("\n=============================================\n");
+        printf("           FINANCE TRACKER 2025              \n");
+        printf("=============================================\n");
         printf("1. Masukkan Transaksi\n");
         printf("2. Lihat Semua Transaksi\n");
         printf("3. Total Transaksi Bulanan\n");
@@ -321,43 +346,26 @@ void menuUtama() {
         printf("6. Tampilkan Saldo Bulanan\n");
         printf("7. Tampilkan Saldo Akhir\n");
         printf("8. Ringkasan Keuangan Bulanan\n");
-        printf("9. Keluar\n\n");
-        printf("\nPilih menu: ");
+        printf("9. Keluar\n");
+        printf("---------------------------------------------\n");
+        printf(">> Pilih menu: ");
         fgets(buffer, sizeof(buffer), stdin);
         sscanf(buffer, "%d", &pilihan);
 
-        switch(pilihan) {
-            case 1:
-                tambahTransaksi();
-                break;
-            case 2:
-                tampilkanSemuaTransaksi();
-                break;
-            case 3:
-                tampilkanTotalBulanan();
-                break;
-            case 4:
-                tampilkanTotalMingguan();
-                break;
-            case 5:
-                hapusTransaksi();
-                break;
-            case 6:
-                tampilkanSaldoBulanan();
-                break;
-            case 7:
-                tampilkanSaldoAkhir();
-                break;
-            case 9:
-                printf("Terima kasih telah menggunakan Finance Tracker.\n");
-                break;
-            case 8:
-                tampilkanRingkasanTahunan();
-                break;
-            default:
-                printf("Pilihan tidak valid.\n");
+        switch (pilihan) {
+            case 1: tambahTransaksi(); break;
+            case 2: tampilkanSemuaTransaksi(); break;
+            case 3: tampilkanTotalBulanan(); break;
+            case 4: tampilkanTotalMingguan(); break;
+            case 5: hapusTransaksi(); break;
+            case 6: tampilkanSaldoBulanan(); break;
+            case 7: tampilkanSaldoAkhir(); break;
+            case 8: tampilkanRingkasanTahunan(); break;
+            case 9: printf(">> Terima kasih telah menggunakan Finance Tracker.\n"); break;
+            default: printf(">> Pilihan tidak valid.\n"); break;
         }
-    } while(pilihan != 9);
+
+    } while (pilihan != 9);
 }
 
 int main() {
