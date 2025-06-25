@@ -321,8 +321,8 @@ void menuUtama() {
         printf("6. Tampilkan Saldo Bulanan\n");
         printf("7. Tampilkan Saldo Akhir\n");
         printf("8. Ringkasan Keuangan Bulanan\n");
-        printf("9. Keluar\n");
-        printf("Pilih menu: ");
+        printf("9. Keluar\n\n");
+        printf("\nPilih menu: ");
         fgets(buffer, sizeof(buffer), stdin);
         sscanf(buffer, "%d", &pilihan);
 
