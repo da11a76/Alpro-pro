@@ -26,7 +26,7 @@ int hariDalamBulan(int bulan) {
 }
 
 int isValidJenis(const char* jenis) {
-    return strcmp(jenis, "pemasukan") == 0 || strcmp(jenis, "pengeluaran") == 0;
+    return strcmp(jenis, "D") == 0 || strcmp(jenis, "K") == 0;
 }
 
 void tambahTransaksi() {
@@ -41,12 +41,12 @@ void tambahTransaksi() {
         }
 
         Transaksi t;
-        printf("Jenis transaksi (pemasukan/pengeluaran): ");
+        printf("Jenis transaksi (Debit(D)/Kredit(K)): ");
         fgets(buffer, sizeof(buffer), stdin);
         sscanf(buffer, "%s", t.jenis);
 
         while (!isValidJenis(t.jenis)) {
-            printf("Jenis tidak valid! Masukkan 'pemasukan' atau 'pengeluaran': ");
+            printf("Jenis tidak valid! Masukkan 'D' atau 'K': ");
             fgets(buffer, sizeof(buffer), stdin);
             sscanf(buffer, "%s", t.jenis);
         }
