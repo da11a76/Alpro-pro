@@ -221,27 +221,30 @@ void tampilkanTotalBulanan() {
 
 // === Total Mingguan ===
 void tampilkanTotalMingguan() {
-    urutkanTransaksi();
+    int bulan, minggu;
 
-    int minggu, bulan;
+// Validasi bulan
+do {
+    printf("\n>> Masukkan bulan (1-12): ");
+    scanf("%d", &bulan);
+    if (bulan < 1 || bulan > 12)
+        printf("!! Bulan tidak valid. Masukkan angka antara 1 hingga 12.\n");
+} while (bulan < 1 || bulan > 12);
 
-    // Validasi bulan (1–12)
-    do {
-        printf("\n>> Masukkan bulan (1-12): ");
-        scanf("%d", &bulan);
-        if (bulan < 1 || bulan > 12)
-            printf("!! Bulan tidak valid. Masukkan antara 1 hingga 12.\n");
-    } while (bulan < 1 || bulan > 12);
+int hari_bulan = hariDalamBulan(bulan);
 
-    // Validasi minggu (1–5)
-    do {
-        printf(">> Masukkan minggu ke- (1-5): ");
-        scanf("%d", &minggu);
-        if (minggu < 1 || minggu > 5)
-            printf("!! Minggu tidak valid. Masukkan angka 1 hingga 5.\n");
-    } while (minggu < 1 || minggu > 5);
+// Tentukan maksimum minggu sesuai jumlah hari
+int max_minggu = (hari_bulan + 6) / 7;  // pembulatan ke atas
 
-    getchar(); // membersihkan newline
+// Validasi minggu
+do {
+    printf(">> Masukkan minggu ke- (1-%d): ", max_minggu);
+    scanf("%d", &minggu);
+    if (minggu < 1 || minggu > max_minggu)
+        printf("!! Minggu tidak valid. Masukkan angka antara 1 hingga %d.\n", max_minggu);
+} while (minggu < 1 || minggu > max_minggu);
+
+getchar(); // bersihkan newline
 
     float total = 0;
     int start = (minggu - 1) * 7 + 1;
