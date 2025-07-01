@@ -79,7 +79,7 @@ void tambahTransaksi() {
             sscanf(buffer, "%s", t.jenis);
         }
 
-        if (strcmp(t.jenis, "D") == 0)
+        if (strcmp(t.jenis, "IN") == 0)
             strcpy(t.jenis, "pemasukan");
         else
             strcpy(t.jenis, "pengeluaran");
