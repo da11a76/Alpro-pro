@@ -74,7 +74,7 @@ void tambahTransaksi() {
         sscanf(buffer, "%s", t.jenis);
 
         while (!isValidJenis(t.jenis)) {
-            printf("Jenis tidak valid! Masukkan 'D' atau 'K': ");
+            printf("Jenis tidak valid! Masukkan 'IN' atau 'OUT': ");
             fgets(buffer, sizeof(buffer), stdin);
             sscanf(buffer, "%s", t.jenis);
         }
