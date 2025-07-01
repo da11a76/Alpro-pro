@@ -380,7 +380,7 @@ void tampilkanSaldoBulanan() {
 
     printf("\n-----------------------------------------------------\n");
     printf("Saldo bulan %d         : Rp %.2f\n", bulan, saldo);
-    printf("Rata-rata pengeluaran : Rp %.2f per hari aktif\n", rata_rata);
+    printf("Rata-rata pengeluaran : Rp %.2f per hari\n", rata_rata);
 }
 
 // === Ringkasan Tahunan ===
@@ -400,9 +400,9 @@ void tampilkanRingkasanTahunan() {
                 if (strcmp(data[i].jenis, "pemasukan") == 0)
                     pemasukan += data[i].nominal;
                 else
-                    pengeluaran += data[i].nominal;
+                    {pengeluaran += data[i].nominal;
 
-                hari_tercatat[data[i].hari] = 1;
+                hari_tercatat[data[i].hari] = 1;}
             }
         }
 
