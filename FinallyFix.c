@@ -26,10 +26,10 @@ int hariDalamBulan(int bulan) {
 }
 
 int isValidJenis(const char* jenis) {
-    return strcmp(jenis, "D") == 0 || strcmp(jenis, "K") == 0;
+    return strcmp(jenis, "IN") == 0 || strcmp(jenis, "OUT") == 0;
 }
 
-// Fungsi pembanding untuk qsort
+// Fungsi pembanding untuk insertion sort
 int bandingkanTanggal(const Transaksi *ta, const Transaksi *tb) {
     if (ta->tahun != tb->tahun) return ta->tahun - tb->tahun;
     if (ta->bulan != tb->bulan) return ta->bulan - tb->bulan;
@@ -69,7 +69,7 @@ void tambahTransaksi() {
         printf("           INPUT TRANSAKSI BARU\n");
         printf("---------------------------------------------\n");
 
-        printf("Jenis transaksi (Debit(D)/Kredit(K)): ");
+        printf("Jenis transaksi (Pemasukan(IN)/Pengeluaran(OUT)): ");
         fgets(buffer, sizeof(buffer), stdin);
         sscanf(buffer, "%s", t.jenis);
 
