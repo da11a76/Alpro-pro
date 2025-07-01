@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 
 #define MAX_TRANSAKSI 1800
 #define MAX_INPUT_PER_SESI 10
