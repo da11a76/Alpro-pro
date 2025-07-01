@@ -352,35 +352,27 @@ void hapusTransaksi() {
 void tampilkanSaldoBulanan() {
     int bulan;
     float pemasukan = 0, pengeluaran = 0;
+    printf("\n>> Masukkan bulan (1-12): ");
+    scanf("%d", &bulan);
+    getchar();
 
-    // Validasi input bulan
-    do {
-        printf("\n>> Masukkan bulan (1-12): ");
-        scanf("%d", &bulan);
-        if (bulan < 1 || bulan > 12)
-            printf("!! Bulan tidak valid. Masukkan angka antara 1 hingga 12.\n");
-    } while (bulan < 1 || bulan > 12);
-
-    getchar(); // bersihkan newline
-
-    int hari_tercatat[32] = {0}; // indeks 1-31, indeks ke-0 tidak dipakai
+    // Penanda hari dengan pengeluaran
+    int hari_pengeluaran[32] = {0};
 
     for (int i = 0; i < jumlah_transaksi; i++) {
         if (data[i].bulan == bulan) {
             if (strcmp(data[i].jenis, "pemasukan") == 0)
                 pemasukan += data[i].nominal;
-            else
+            else {
                 pengeluaran += data[i].nominal;
-
-            // Cegah out-of-bound jika data salah
-            if (data[i].hari >= 1 && data[i].hari <= 31)
-                hari_tercatat[data[i].hari] = 1;
+                hari_pengeluaran[data[i].hari] = 1;
+            }
         }
     }
 
     int hari_aktif = 0;
     for (int i = 1; i <= 31; i++) {
-        if (hari_tercatat[i]) hari_aktif++;
+        if (hari_pengeluaran[i]) hari_aktif++;
     }
 
     float rata_rata = hari_aktif ? pengeluaran / hari_aktif : 0;
