@@ -25,7 +25,7 @@ int hariDalamBulan(int bulan) {
     }
 }
 
-int isValidJenis(const char* jenis) {
+int ValidJenis(const char* jenis) {
     return strcmp(jenis, "IN") == 0 || strcmp(jenis, "OUT") == 0;
 }
 
@@ -72,7 +72,7 @@ void tambahTransaksi() {
         fgets(buffer, sizeof(buffer), stdin);
         sscanf(buffer, "%s", t.jenis);
 
-        while (!isValidJenis(t.jenis)) {
+        while (!ValidJenis(t.jenis)) {
             printf("Jenis tidak valid! Masukkan 'IN' atau 'OUT': ");
             fgets(buffer, sizeof(buffer), stdin);
             sscanf(buffer, "%s", t.jenis);
@@ -315,11 +315,11 @@ void hapusTransaksi() {
     printf("       HAPUS TRANSAKSI BULAN %02d/2025             \n", bulan);
     printf("=====================================================\n");
 
-    int indices[MAX_TRANSAKSI];
+    int indeks[MAX_TRANSAKSI];
     int count = 0;
     for (int i = 0; i < jumlah_transaksi; i++) {
         if (data[i].bulan == bulan) {
-            indices[count] = i;
+            indeks[count] = i;
             count++;
             printf("%3d. %-12s | %-15s | %02d/%02d/%d | Rp %.2f\n",
                    count, data[i].jenis, data[i].kategori,
@@ -340,7 +340,7 @@ void hapusTransaksi() {
         printf("Nomor tidak valid!\n");
         return;
     }
-    int idx = indices[pilih - 1];
+    int idx = indeks[pilih - 1];
     // Geser data
     for (int i = idx; i < jumlah_transaksi - 1; i++) {
         data[i] = data[i + 1];
@@ -431,7 +431,6 @@ void tampilkanRingkasanTahunan() {
 
 // === Saldo Akhir ===
 void tampilkanSaldoAkhir() {
-    urutkanTransaksi();
     float pemasukan = 0, pengeluaran = 0;
     for (int i = 0; i < jumlah_transaksi; i++) {
         if (strcmp(data[i].jenis, "pemasukan") == 0)
