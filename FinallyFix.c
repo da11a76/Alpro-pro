@@ -165,7 +165,6 @@ void tampilkanSemuaTransaksi() {
 }
 // === Total Bulanan ===
 void tampilkanTotalBulanan() {
-    urutkanTransaksi();
     int bulan;
     float total = 0;
 
@@ -394,7 +393,6 @@ void tampilkanSaldoBulanan() {
 
 // === Ringkasan Tahunan ===
 void tampilkanRingkasanTahunan() {
-    urutkanTransaksi();
     printf("\n==============================================================\n");
     printf("           RINGKASAN KEUANGAN BULANAN TAHUN 2025\n");
     printf("==============================================================\n");
