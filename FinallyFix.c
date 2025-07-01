@@ -135,9 +135,16 @@ void tambahTransaksi() {
 void tampilkanSemuaTransaksi() {
     urutkanTransaksi();
     int bulan;
-    printf("\n>> Masukkan bulan transaksi yang ingin dilihat (1-12): ");
-    scanf("%d", &bulan);
-    getchar();
+
+    // Validasi input bulan
+    do {
+        printf("\n>> Masukkan bulan transaksi yang ingin dilihat (1-12): ");
+        scanf("%d", &bulan);
+        if (bulan < 1 || bulan > 12)
+            printf("!! Bulan tidak valid. Masukkan angka antara 1 hingga 12.\n");
+    } while (bulan < 1 || bulan > 12);
+
+    getchar(); // bersihkan newline
 
     printf("\n=====================================================\n");
     printf("          DAFTAR TRANSAKSI BULAN %02d/2025          \n", bulan);
@@ -152,17 +159,25 @@ void tampilkanSemuaTransaksi() {
                    data[i].hari, data[i].bulan, data[i].tahun, data[i].nominal);
         }
     }
-    if (count == 0) printf("Tidak ada transaksi pada bulan ini.\n");
-}
 
+    if (count == 0)
+        printf("Tidak ada transaksi pada bulan ini.\n");
+}
 // === Total Bulanan ===
 void tampilkanTotalBulanan() {
     urutkanTransaksi();
     int bulan;
     float total = 0;
-    printf("\n>> Masukkan bulan (1-12): ");
-    scanf("%d", &bulan);
-    getchar();
+
+    // Validasi input bulan
+    do {
+        printf("\n>> Masukkan bulan (1-12): ");
+        scanf("%d", &bulan);
+        if (bulan < 1 || bulan > 12)
+            printf("!! Bulan tidak valid. Masukkan angka antara 1 hingga 12.\n");
+    } while (bulan < 1 || bulan > 12);
+
+    getchar(); // bersihkan newline
 
     typedef struct {
         char kategori[50];
@@ -193,6 +208,7 @@ void tampilkanTotalBulanan() {
 
     printf("\n-----------------------------------------------------\n");
     printf("Total pengeluaran pada bulan %d: Rp %.2f\n", bulan, total);
+
     if (total > 0) {
         printf(">> Persentase pengeluaran per kategori:\n");
         for (int i = 0; i < kategori_count; i++) {
@@ -201,23 +217,36 @@ void tampilkanTotalBulanan() {
                    kategori_list[i].kategori, kategori_list[i].jumlah, persen);
         }
     } else {
-        printf("Tidak ada pengeluaran tercatat pada bulan ini.\n");
-    }
-}
+        printf("Tidak ada pengeluaran tercatat");}}
 
 // === Total Mingguan ===
 void tampilkanTotalMingguan() {
     urutkanTransaksi();
+
     int minggu, bulan;
-    printf("\n>> Masukkan bulan (1-12): ");
-    scanf("%d", &bulan);
-    printf(">> Masukkan minggu ke- (1-5): ");
-    scanf("%d", &minggu);
-    getchar();
+
+    // Validasi bulan (1–12)
+    do {
+        printf("\n>> Masukkan bulan (1-12): ");
+        scanf("%d", &bulan);
+        if (bulan < 1 || bulan > 12)
+            printf("!! Bulan tidak valid. Masukkan antara 1 hingga 12.\n");
+    } while (bulan < 1 || bulan > 12);
+
+    // Validasi minggu (1–5)
+    do {
+        printf(">> Masukkan minggu ke- (1-5): ");
+        scanf("%d", &minggu);
+        if (minggu < 1 || minggu > 5)
+            printf("!! Minggu tidak valid. Masukkan angka 1 hingga 5.\n");
+    } while (minggu < 1 || minggu > 5);
+
+    getchar(); // membersihkan newline
 
     float total = 0;
     int start = (minggu - 1) * 7 + 1;
     int end = minggu * 7;
+    if (end > 31) end = 31; // maksimal hari dalam sebulan
 
     typedef struct {
         char kategori[50];
@@ -267,9 +296,16 @@ void tampilkanTotalMingguan() {
 void hapusTransaksi() {
     urutkanTransaksi();
     int bulan;
-    printf("\n>> Masukkan bulan transaksi yang ingin dihapus (1-12): ");
-    scanf("%d", &bulan);
-    getchar();
+
+    // Validasi input bulan agar antara 1-12
+    do {
+        printf("\n>> Masukkan bulan transaksi yang ingin dihapus (1-12): ");
+        scanf("%d", &bulan);
+        getchar();
+        if (bulan < 1 || bulan > 12) {
+            printf("!! Bulan tidak valid. Masukkan angka antara 1 hingga 12.\n");
+        }
+    } while (bulan < 1 || bulan > 12);
 
     // Tampilkan list filtered
     printf("\n=====================================================\n");
@@ -314,11 +350,18 @@ void hapusTransaksi() {
 void tampilkanSaldoBulanan() {
     int bulan;
     float pemasukan = 0, pengeluaran = 0;
-    printf("\n>> Masukkan bulan (1-12): ");
-    scanf("%d", &bulan);
-    getchar();
 
-    int hari_tercatat[32] = {0};
+    // Validasi input bulan
+    do {
+        printf("\n>> Masukkan bulan (1-12): ");
+        scanf("%d", &bulan);
+        if (bulan < 1 || bulan > 12)
+            printf("!! Bulan tidak valid. Masukkan angka antara 1 hingga 12.\n");
+    } while (bulan < 1 || bulan > 12);
+
+    getchar(); // bersihkan newline
+
+    int hari_tercatat[32] = {0}; // indeks 1-31, indeks ke-0 tidak dipakai
 
     for (int i = 0; i < jumlah_transaksi; i++) {
         if (data[i].bulan == bulan) {
@@ -327,7 +370,9 @@ void tampilkanSaldoBulanan() {
             else
                 pengeluaran += data[i].nominal;
 
-            hari_tercatat[data[i].hari] = 1;
+            // Cegah out-of-bound jika data salah
+            if (data[i].hari >= 1 && data[i].hari <= 31)
+                hari_tercatat[data[i].hari] = 1;
         }
     }
 
