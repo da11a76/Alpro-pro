@@ -31,7 +31,6 @@ int isValidJenis(const char* jenis) {
 
 // Fungsi pembanding untuk insertion sort
 int bandingkanTanggal(const Transaksi *ta, const Transaksi *tb) {
-    if (ta->tahun != tb->tahun) return ta->tahun - tb->tahun;
     if (ta->bulan != tb->bulan) return ta->bulan - tb->bulan;
     return ta->hari - tb->hari;
 }
