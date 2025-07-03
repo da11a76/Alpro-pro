@@ -344,9 +344,34 @@ void tampilkanSaldoAkhir() {
         else
             pengeluaran += data[i].nominal;
     }
+
+    float saldo = pemasukan - pengeluaran;
+    float persentase_sisa = (pemasukan > 0) ? (saldo / pemasukan) * 100 : 0;
+
     printf("\n=================================================\n");
-    printf("   SALDO AKHIR KEUANGAN: Rp %.2f\n", pemasukan - pengeluaran);
+    printf("   SALDO AKHIR KEUANGAN: Rp %.2f\n", saldo);
     printf("=================================================\n");
+
+    // Peringatan tegas
+    if (saldo < 0) {
+        printf("!! PERINGATAN: SALDO NEGATIF !!\n");
+        printf("   Pengeluaran melebihi pemasukan.\n");
+        printf("   Segera evaluasi dan kurangi pengeluaran!\n");
+    } else if (saldo == 0) {
+        printf("!! PERINGATAN: SALDO HABIS !!\n");
+        printf("   Semua pemasukan telah digunakan.\n");
+        printf("   Hindari kondisi ini agar tidak masuk defisit!\n");
+    } else if (persentase_sisa < 20) {
+        printf("!! PERINGATAN: SALDO MENIPIS !!\n");
+        printf("   Sisa saldo kurang dari 20%% dari total pemasukan.\n");
+        printf("   Kendalikan pengeluaran secepatnya.\n");
+    } else if (persentase_sisa < 50) {
+        printf("! CATATAN: Saldo mulai menyusut.\n");
+        printf("  Tetap waspada dalam mengatur pengeluaran.\n");
+    } else {
+        printf("Status: Saldo dalam kondisi sehat.\n");
+        printf("         Pertahankan pengelolaan seperti ini.\n");
+    }
 }
 
 void menuUtama() {
