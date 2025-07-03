@@ -402,37 +402,107 @@ void tampilkanSaldoBulanan() {
 
 // === Ringkasan Tahunan ===
 void tampilkanRingkasanTahunan() {
-    printf("\n==============================================================\n");
-    printf("           RINGKASAN KEUANGAN BULANAN TAHUN 2025\n");
-    printf("==============================================================\n");
-    printf("Bulan |  Pemasukan  | Pengeluaran |   Saldo   | Rata-rata Harian\n");
-    printf("--------------------------------------------------------------\n");
+    // --- Header Tabel Bulanan ---
+    printf("\n+-------+----------------+----------------+----------------+----------------+\n");
+    printf("| Bulan |   Pemasukan    |  Pengeluaran   |     Saldo      | Rata-rata/Hari |\n");
+    printf("+-------+----------------+----------------+----------------+----------------+\n");
 
+    // --- Loop Per Bulan ---
     for (int bulan = 1; bulan <= 12; bulan++) {
         float pemasukan = 0, pengeluaran = 0;
         int hari_tercatat[32] = {0};
 
+        // Hitung pemasukan, pengeluaran, dan hari aktif
         for (int i = 0; i < jumlah_transaksi; i++) {
-            if (data[i].bulan == bulan && data[i].tahun == 2025) {
-                if (strcmp(data[i].jenis, "pemasukan") == 0)
+            if (data[i].tahun == 2025 && data[i].bulan == bulan) {
+                if (strcmp(data[i].jenis, "pemasukan") == 0) {
                     pemasukan += data[i].nominal;
-                else
-                    {pengeluaran += data[i].nominal;
-
-                hari_tercatat[data[i].hari] = 1;}
+                } else {
+                    pengeluaran += data[i].nominal;
+                    hari_tercatat[data[i].hari] = 1;
+                }
             }
         }
 
         int hari_aktif = 0;
-        for (int i = 1; i <= 31; i++) {
-            if (hari_tercatat[i]) hari_aktif++;
+        for (int d = 1; d <= 31; d++) {
+            if (hari_tercatat[d]) hari_aktif++;
         }
 
         float rata_rata = hari_aktif ? pengeluaran / hari_aktif : 0;
-        float saldo = pemasukan - pengeluaran;
+        float saldo     = pemasukan - pengeluaran;
 
-        printf("  %2d   | %10.2f  | %10.2f  | %8.2f | %17.2f\n",
+        // Cetak baris bulan dengan kolom rata
+        printf("|  %2d   | %14.2f | %14.2f | %14.2f | %14.2f |\n",
                bulan, pemasukan, pengeluaran, saldo, rata_rata);
+    }
+
+    // --- Footer Tabel Bulanan ---
+    printf("+-------+----------------+----------------+----------------+----------------+\n");
+
+    // --- Hitung & Akumulasi Total Pengeluaran Tahunan ---
+    float total_pengeluaran_tahunan = 0.0f;
+    typedef struct {
+        char kategori[50];
+        float jumlah;
+    } KategoriPengeluaran;
+
+    KategoriPengeluaran kategori_list[MAX_TRANSAKSI];
+    int kategori_count = 0;
+
+    for (int i = 0; i < jumlah_transaksi; i++) {
+        if (data[i].tahun == 2025 && strcmp(data[i].jenis, "pengeluaran") == 0) {
+            total_pengeluaran_tahunan += data[i].nominal;
+
+            // Tambah atau update kategori
+            int found = 0;
+            for (int k = 0; k < kategori_count; k++) {
+                if (strcmp(kategori_list[k].kategori, data[i].kategori) == 0) {
+                    kategori_list[k].jumlah += data[i].nominal;
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found) {
+                strcpy(kategori_list[kategori_count].kategori, data[i].kategori);
+                kategori_list[kategori_count].jumlah = data[i].nominal;
+                kategori_count++;
+            }
+        }
+    }
+
+    // --- Tampilkan Grafik Distribusi Total ---
+    if (total_pengeluaran_tahunan > 0) {
+        const int BAR_WIDTH = 30;
+
+        // Header tabel distribusi
+        printf("\n+----------------------------------------------------+\n");
+        printf("|      DISTRIBUSI PENGELUARAN TOTAL TAHUN 2025       |\n");
+        printf("+----------------------------------------------------+\n");
+        printf("\n+----------------+--------------------------------+--------+\n");
+        printf("| Kategori       | Bar                            |   %%    |\n");
+        printf("+----------------+--------------------------------+--------+\n");
+
+        // Baris per kategori
+        for (int k = 0; k < kategori_count; k++) {
+            float persen = (kategori_list[k].jumlah / total_pengeluaran_tahunan) * 100.0f;
+            int filled = (int)(BAR_WIDTH * (persen / 100.0f));
+
+            // Cetak kategori
+            printf("| %-14s | ", kategori_list[k].kategori);
+
+            // Isi bar: '=' terisi, spasi sisanya
+            for (int i = 0; i < filled; i++)   printf("=");
+            for (int i = filled; i < BAR_WIDTH; i++) printf(" ");
+
+            // Cetak persentase
+            printf(" | %6.2f%% |\n", persen);
+        }
+
+        // Footer tabel distribusi
+        printf("+----------------+--------------------------------+--------+\n");
+    } else {
+        printf("\nTidak ada data pengeluaran untuk tahun 2025.\n");
     }
 }
 
