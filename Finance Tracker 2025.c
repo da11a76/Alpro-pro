@@ -256,31 +256,50 @@ void tampilkanSaldoBulanan() {
     scanf("%d", &bulan);
     getchar();
 
-    int hari_tercatat[32] = {0};
+    // Penanda hari dengan pengeluaran
+    int hari_pengeluaran[32] = {0};
 
     for (int i = 0; i < jumlah_transaksi; i++) {
         if (data[i].bulan == bulan) {
             if (strcmp(data[i].jenis, "pemasukan") == 0)
                 pemasukan += data[i].nominal;
-            else
+            else {
                 pengeluaran += data[i].nominal;
-
-            hari_tercatat[data[i].hari] = 1;
+                hari_pengeluaran[data[i].hari] = 1;
+            }
         }
     }
 
     int hari_aktif = 0;
     for (int i = 1; i <= 31; i++) {
-        if (hari_tercatat[i]) hari_aktif++;
+        if (hari_pengeluaran[i]) hari_aktif++;
     }
 
     float rata_rata = hari_aktif ? pengeluaran / hari_aktif : 0;
     float saldo = pemasukan - pengeluaran;
+    float persentase_sisa = (pemasukan > 0) ? (saldo / pemasukan) * 100 : 0;
 
     printf("\n-----------------------------------------------------\n");
-    printf("Saldo bulan %d         : Rp %.2f\n", bulan, saldo);
-    printf("Rata-rata pengeluaran : Rp %.2f per hari aktif\n", rata_rata);
+    printf("LAPORAN KEUANGAN BULAN KE-%d\n", bulan);
+    printf("-----------------------------------------------------\n");
+    printf("Total pemasukan        : Rp %.2f\n", pemasukan);
+    printf("Total pengeluaran      : Rp %.2f\n", pengeluaran);
+    printf("Saldo akhir            : Rp %.2f\n", saldo);
+    printf("Rata-rata pengeluaran  : Rp %.2f per hari\n", rata_rata);
+    printf("-----------------------------------------------------\n");
+
+    // Narasi laporan reflektif
+    if (saldo < 0) {
+        printf("Saldo di bulan ini minus. Usahakan pengeluaran lebih sedikit di bulan berikutnya.\n");
+    } else if (persentase_sisa < 20) {
+        printf("Saldo bulan ini hampir habis. Perlu pengelolaan yang lebih hati-hati bulan depan.\n");
+    } else if (persentase_sisa < 50) {
+        printf("Saldo masih tersisa, tapi mulai menipis. Jaga keseimbangan pengeluaran di bulan berikutnya.\n");
+    } else {
+        printf("Keuangan bulan ini cukup sehat. Pertahankan pola pengeluaran yang baik.\n");
+    }
 }
+
 
 void tampilkanRingkasanTahunan() {
     printf("\n==============================================================\n");
