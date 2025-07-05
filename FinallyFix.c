@@ -391,7 +391,7 @@ void tampilkanSaldoBulanan() {
     printf("Rata-rata pengeluaran  : Rp %.2f per hari\n", rata_rata);
     printf("-----------------------------------------------------\n");
 
-    // Narasi laporan reflektif
+    // Narasi laporan
     if (saldo < 0) {
         printf("Saldo di bulan ini minus. Usahakan pengeluaran lebih sedikit di bulan berikutnya.\n");
     } else if (persentase_sisa < 20) {
