@@ -352,9 +352,12 @@ void hapusTransaksi() {
 void tampilkanSaldoBulanan() {
     int bulan;
     float pemasukan = 0, pengeluaran = 0;
+    do {
     printf("\n>> Masukkan bulan (1-12): ");
     scanf("%d", &bulan);
-    getchar();
+    if (bulan < 1 || bulan > 12)
+        printf("!! Bulan tidak valid. Masukkan angka antara 1 hingga 12.\n");
+} while (bulan < 1 || bulan > 12);
 
     // Penanda hari dengan pengeluaran
     int hari_pengeluaran[32] = {0};
